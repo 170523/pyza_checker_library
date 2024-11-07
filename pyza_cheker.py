@@ -6,6 +6,19 @@ from importlib import import_module
 import pathlib
 
 class PyzaChecker:
+    def test_repeater(func):
+        def wrapper(self, test_no = None):
+            if test_no is None:
+                test_nos = [i + 1 for i in range(len(self.input_strs))]
+            elif isinstance(test_no, int):
+                test_nos = [test_no]
+            else:
+                test_nos = test_no
+            
+            for test_no in test_nos:
+                func(self, test_no)
+        return wrapper
+    
     def __init__(self, main_script_name = None, test_data_path = None):
         if main_script_name is not None:
             self.main_script = main_script_name
@@ -29,89 +42,60 @@ class PyzaChecker:
         self.input_strs = input_strs
         self.output_strs = output_strs
 
-    def run_test(self, test_no = None):
-        if test_no is None:
-            test_nos = [i + 1 for i in range(len(self.input_strs))]
+    @test_repeater
+    def run_test(self, test_no):
+        print(f'===== Test NO {test_no} =======')
+        print('** Input_Data **')
+        print(self.input_strs[test_no - 1])
+
+        # 出力をキャッチする準備
+        io = StringIO()
+        sys.stdout = io
+
+        self.run_main_script(test_no)
+        test_output = io.getvalue() # 出力をキャッチ
+
+        # 出力を標準出力に戻す
+        sys.stdout = sys.__stdout__
+
+        print('** main_output **')
+        print(test_output)
+
+        if test_output == self.output_strs[test_no - 1]:
+            print('>> Correct.')
         else:
-            test_nos = [test_no]
-        
-        for test_no in test_nos:
-            print(f'===== Test NO {test_no} =======')
-            print('** Input_Data **')
-            print(self.input_strs[test_no - 1])
+            print('>> InCorrect.')
+            print('>> Correct Output is')
+            print(self.output_strs[test_no - 1])
 
-            # 出力をキャッチする準備
-            io = StringIO()
-            sys.stdout = io
-
-            self.run_main_script(test_no)
-            test_output = io.getvalue() # 出力をキャッチ
-
-            # 出力を標準出力に戻す
-            sys.stdout = sys.__stdout__
-
-            print('** main_output **')
-            print(test_output)
-
-            if test_output == self.output_strs[test_no - 1]:
-                print('>> Correct.')
-            else:
-                print('>> InCorrect.')
-                print('>> Correct Output is')
-                print(self.output_strs[test_no - 1])
-
+    @test_repeater
     def run_main_script(self, test_no):
-
         # 入力値を設定して標準入力にセット
         input_string = self.input_strs[test_no - 1]
         sys.stdin = StringIO(input_string)
 
-        # io = StringIO()
-        # sys.stdout = io
         mod = import_module(self.main_script) # メインスクリプトを実行
 
-        # test_output = io.getvalue()
-
-        # sys.stdout = sys.__stdout__
         sys.modules.pop(self.main_script) # モジュールを削除
 
-        # return test_output
+    @test_repeater
+    def debug(self, test_no):
+        print(f'===== Test NO {test_no} =======')
+        print('** Input_Data **')
+        print(self.input_strs[test_no - 1])
+        print('** main_output **')
+        self.run_main_script(test_no)
+        print('\n')
 
-    def debug(self, test_no = None):
-        if test_no is None:
-            test_nos = [i + 1 for i in range(len(self.input_strs))]
-        else:
-            test_nos = [test_no]
+    @test_repeater
+    def check_input(self, test_no):
+        print(f'===== Input Data of Test NO {test_no} =======')
+        print(self.input_strs[test_no - 1])
     
-        for test_no in test_nos:
-            print(f'===== Test NO {test_no} =======')
-            print('** Input_Data **')
-            print(self.input_strs[test_no - 1])
-            print('** main_output **')
-            self.run_main_script(test_no)
-            print('\n')
-
-
-    def check_input(self, test_no = None):
-        if test_no is None:
-            test_nos = [i + 1 for i in range(len(self.input_strs))]
-        else:
-            test_nos = [test_no]
-        
-        for test_no in test_nos:
-            print(f'===== Input Data of Test NO {test_no} =======')
-            print(self.input_strs[test_no - 1])
-    
-    def check_correct_output(self, test_no = None):
-        if test_no is None:
-            test_nos = [i + 1 for i in range(len(self.input_strs))]
-        else:
-            test_nos = [test_no]
-
-        for test_no in test_nos:
-            print(f'===== Correct Output of Test NO {test_no} =======')
-            print(self.output_strs[test_no - 1])
-
+    @test_repeater
+    def check_correct_output(self, test_no):
+        print(f'===== Correct Output of Test NO {test_no} =======')
+        print(self.output_strs[test_no - 1])
 
     def read_input_data(self, input_string):
         input_examples = []
@@ -134,3 +118,4 @@ class PyzaChecker:
             output_examples.append(output_example)
         
         return input_examples, output_examples
+    
