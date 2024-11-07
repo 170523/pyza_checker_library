@@ -1,4 +1,5 @@
 import sys
+import os
 from io import StringIO
 import re
 from importlib import import_module
@@ -14,6 +15,10 @@ class PyzaChecker:
         if test_data_path is not None:
             test_data_path = pathlib.Path(test_data_path)
         else:
+            # カレントディレクトリをsys.pathに加える
+            curdir = os.getcwd()
+            if curdir not in sys.path:
+                sys.path.append(curdir)
             test_data_path = 'test_data.txt'
 
         with open(test_data_path, mode = 'r', encoding='utf-8') as f:
@@ -31,8 +36,8 @@ class PyzaChecker:
             test_nos = [test_no]
     
         for test_no in test_nos:
-            test_output = self._do_test(test_no)
-            self.check_test_output(test_no)
+            # test_output = self._do_test(test_no)
+            test_output = self.check_test_output(test_no)
 
             if test_output == self.output_strs[test_no - 1]:
                 print('>> Correct.')
@@ -68,7 +73,8 @@ class PyzaChecker:
             test_output = self._do_test(test_no)
             print(f'===== Test Output NO {test_no} =======')
             print(test_output)
-            
+        
+        return test_output
 
     def check_input(self, test_no = None):
         if test_no is None:
