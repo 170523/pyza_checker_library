@@ -1,0 +1,1 @@
+from pyza_checker.pyza_cheker import PyzaChecker
