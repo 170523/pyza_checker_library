@@ -34,10 +34,24 @@ class PyzaChecker:
             test_nos = [i + 1 for i in range(len(self.input_strs))]
         else:
             test_nos = [test_no]
-    
+        
         for test_no in test_nos:
-            # test_output = self._do_test(test_no)
-            test_output = self.check_test_output(test_no)
+            print(f'===== Test NO {test_no} =======')
+            print('** Input_Data **')
+            print(self.input_strs[test_no - 1])
+
+            # 出力をキャッチする準備
+            io = StringIO()
+            sys.stdout = io
+
+            self.run_main_script(test_no)
+            test_output = io.getvalue() # 出力をキャッチ
+
+            # 出力を標準出力に戻す
+            sys.stdout = sys.__stdout__
+
+            print('** main_output **')
+            print(test_output)
 
             if test_output == self.output_strs[test_no - 1]:
                 print('>> Correct.')
@@ -46,35 +60,37 @@ class PyzaChecker:
                 print('>> Correct Output is')
                 print(self.output_strs[test_no - 1])
 
-    def _do_test(self, test_no):
+    def run_main_script(self, test_no):
 
+        # 入力値を設定して標準入力にセット
         input_string = self.input_strs[test_no - 1]
         sys.stdin = StringIO(input_string)
 
-        io = StringIO()
-        sys.stdout = io
+        # io = StringIO()
+        # sys.stdout = io
+        mod = import_module(self.main_script) # メインスクリプトを実行
 
-        mod = import_module(self.main_script)
+        # test_output = io.getvalue()
 
-        test_output = io.getvalue()
+        # sys.stdout = sys.__stdout__
+        sys.modules.pop(self.main_script) # モジュールを削除
 
-        sys.stdout = sys.__stdout__
-        sys.modules.pop(self.main_script)
+        # return test_output
 
-        return test_output
-
-    def check_test_output(self, test_no = None):
+    def debug(self, test_no = None):
         if test_no is None:
             test_nos = [i + 1 for i in range(len(self.input_strs))]
         else:
             test_nos = [test_no]
     
         for test_no in test_nos:
-            test_output = self._do_test(test_no)
-            print(f'===== Test Output NO {test_no} =======')
-            print(test_output)
-        
-        return test_output
+            print(f'===== Test NO {test_no} =======')
+            print('** Input_Data **')
+            print(self.input_strs[test_no - 1])
+            print('** main_output **')
+            self.run_main_script(test_no)
+            print('\n')
+
 
     def check_input(self, test_no = None):
         if test_no is None:
